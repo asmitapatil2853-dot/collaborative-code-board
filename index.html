@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SyncBoard — Collaborative Code Review</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/"><span class="brand-mark">{"}"}</span><span>Sync<span class="accent">Board</span></span></a>
+      <div class="top-meta">
+        <span class="live-dot"></span><span id="connectionText">Connecting…</span>
+        <span class="divider"></span>
+        <span class="pill" id="userRoleBadge">ROLE: -</span>
+        <span class="divider"></span>
+        <!-- 1. Logout Action -->
+        <a href="/logout" style="text-decoration:none;"><button class="ghost-btn" style="color:#ff7d91;border-color:#ff7d9133;" type="button">Logout</button></a>
+      </div>
+    </header>
+
+    <main>
+      <section class="welcome-row">
+        <div>
+          <p class="eyebrow">COLLABORATIVE DEVELOPMENT SPACE</p>
+          <h1>Build better code, <span class="gradient-text">together.</span></h1>
+          <p class="subheading">Shared code workspace with live updates, version history, and peer reviews.</p>
+        </div>
+        <div class="workspace-chip"><span class="workspace-icon">⌘</span><div><small>WORKSPACE</small><strong id="workspaceLabel">Not joined</strong></div></div>
+      </section>
+
+      <section class="join-card panel">
+        <div class="section-heading"><div><span class="step-number">01</span><h2>Join a workspace</h2></div><span class="muted">Enter workspace room</span></div>
+        <form id="joinForm" class="join-form">
+          <label>Your display name<input id="username" maxlength="24" value="{{ current_user.username }}" readonly></label>
+          <label>Workspace ID<input id="room" maxlength="40" value="cse-team" required placeholder="e.g. cse-team"></label>
+          <button class="primary-btn" type="submit">Join workspace <span>→</span></button>
+        </form>
+      </section>
+
+      <section class="main-grid">
+        <div class="editor-panel panel">
+          <div class="panel-top">
+            <div class="file-tab"><span class="file-dot"></span><span id="fileName">main.py</span><span class="tab-x">×</span></div>
+            <div class="editor-actions">
+              <select id="languageSelect" aria-label="Language">
+                <option value="python">Python</option><option value="javascript">JavaScript</option>
+                <option value="java">Java</option><option value="html">HTML</option>
+                <option value="css">CSS</option><option value="sql">SQL</option>
+              </select>
+              <!-- 3. Save Version Button -->
+              <button id="saveVersionBtn" class="ghost-btn" type="button" style="color:#5eead4;">💾 Save Version</button>
+              <button id="downloadBtn" class="ghost-btn" type="button">↓ Export</button>
+            </div>
+          </div>
+          <div id="editorMount"><textarea id="codeEditor"># Join a workspace to start collaborating!</textarea></div>
+          <div class="editor-footer"><span><span class="live-dot"></span> Live sync enabled</span><span id="saveStatus">Waiting for workspace</span><span id="lineCount">2 lines</span></div>
+        </div>
+
+        <aside class="side-column">
+          <!-- 2. Workspace Share Panel -->
+          <section class="panel review-panel" id="sharePanelBox">
+            <div class="section-heading compact"><div><span class="step-number">02</span><h2>Share Workspace</h2></div></div>
+            <p class="panel-description">Give access to teammates (Owner only).</p>
+            <form id="shareForm" style="display:flex; flex-direction:column; gap:8px;">
+              <input id="shareUsername" type="text" placeholder="Teammate's Username" required />
+              <select id="shareRole">
+                <option value="editor">Editor (Can edit & review)</option>
+                <option value="viewer">Viewer (Read-only)</option>
+              </select>
+              <button class="ghost-btn" style="background:#241f3b; border-color:#8b5cf6;" type="submit">Grant Access</button>
+            </form>
+          </section>
+
+          <!-- Reviews Panel -->
+          <section class="panel review-panel">
+            <div class="section-heading compact"><div><span class="step-number">03</span><h2>Review board</h2></div><span class="count-badge" id="commentCount">0</span></div>
+            <form id="commentForm">
+              <textarea id="commentInput" rows="2" maxlength="1000" placeholder="Suggest an improvement…" required></textarea>
+              <button class="primary-btn full-btn" type="submit">＋ Add comment</button>
+            </form>
+            <div id="commentsList" class="comments-list"></div>
+          </section>
+
+          <!-- 3. Version History Panel -->
+          <section class="panel activity-panel">
+            <div class="section-heading compact">
+              <div><span class="step-number">04</span><h2>Version History</h2></div>
+              <button id="refreshVersionsBtn" class="ghost-btn" style="padding:4px 8px; font-size:10px;" type="button">🔄</button>
+            </div>
+            <div id="versionsList" class="activity-list" style="max-height:220px; overflow-y:auto;">
+              <div class="empty-state"><p>No saved versions yet</p></div>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <footer><span>SyncBoard <span class="muted">· Built for better teamwork</span></span><span>Python · Flask-SocketIO · CodeMirror</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+  <script src="https://unpkg.com/socket.io-client@4.8.1/dist/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

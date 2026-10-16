@@ -1,0 +1,226 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyncBoard | Login & Register</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            color: #f1f5f9;
+            background: #0f172a;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            margin: 0 0 8px;
+            color: #a78bfa;
+            font-size: 32px;
+        }
+
+        .brand p {
+            margin: 0;
+            color: #94a3b8;
+        }
+
+        .card {
+            padding: 28px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .form-section {
+            margin-bottom: 28px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            color: #f8fafc;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #a78bfa;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            color: white;
+            background: #7c3aed;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #6d28d9;
+        }
+
+        .divider {
+            height: 1px;
+            margin: 26px 0;
+            background: #334155;
+        }
+
+        .note {
+            margin-top: 20px;
+            color: #94a3b8;
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            padding: 10px;
+            background: #334155;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <header class="brand">
+            <h1>SyncBoard</h1>
+            <p>Collaborate. Code. Review.</p>
+        </header>
+
+        <div class="card">
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="message">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <section class="form-section">
+                <h2>Welcome Back</h2>
+
+                <form action="{{ url_for('login') }}" method="POST">
+                    <input type="hidden" name="csrf_token"
+                           value="{{ csrf_token() }}">
+
+                    <label for="login-username">Username</label>
+                    <input
+                        type="text"
+                        id="login-username"
+                        name="username"
+                        autocomplete="username"
+                        required
+                    >
+
+                    <label for="login-password">Password</label>
+                    <input
+                        type="password"
+                        id="login-password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button type="submit">Login</button>
+                </form>
+            </section>
+
+            <div class="divider"></div>
+
+            <section class="form-section">
+                <h2>Create Account</h2>
+
+                <form action="{{ url_for('register') }}" method="POST">
+                    <input type="hidden" name="csrf_token"
+                           value="{{ csrf_token() }}">
+
+                    <label for="register-username">Choose Username</label>
+                    <input
+                        type="text"
+                        id="register-username"
+                        name="username"
+                        minlength="3"
+                        maxlength="30"
+                        autocomplete="username"
+                        required
+                    >
+
+                    <label for="register-email">Email</label>
+                    <input
+                        type="email"
+                        id="register-email"
+                        name="email"
+                        autocomplete="email"
+                        required
+                    >
+
+                    <label for="register-password">Choose Password</label>
+                    <input
+                        type="password"
+                        id="register-password"
+                        name="password"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button type="submit">Register</button>
+                </form>
+            </section>
+        </div>
+
+        <p class="note">
+            Your account will help protect access to your workspaces.
+            Never share your password with anyone.
+        </p>
+    </main>
+</body>
+</html>
